@@ -1,0 +1,22 @@
+export default class WebSocketClient {
+  
+static makeEndPoint = (date, criteria) => {
+    return `https://crv7pbzeg8.execute-api.us-east-1.amazonaws.com/dev/wsr/us/${date}?criteriaName=${criteria}`
+    // return `${baseUrl}/${version1}/views/wsr/us/${date}?criteriaName=${criteria}`;
+  };
+
+  static getRankData = (date, criteria) => {
+    const config = {
+      method: "get",
+      url: this.makeEndPoint(date, criteria),
+      headers: {
+        // "x-api-key": "QwtwCdnbZD8R8JWBgDnod7LB5jeE22lIaPZC6ROE",
+        "x-api-key" : "cHr11TbRoF73JW66MCwH572uAM7ndkpu1No19Mh2",
+        Authorization: outsetToken,
+      },
+    };
+    return axios(config);
+  };
+
+ 
+}
