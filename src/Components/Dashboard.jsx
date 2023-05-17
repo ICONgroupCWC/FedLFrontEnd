@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Col, Row, Card } from 'antd';
+import { Layout, Col, Row, Card, Collapse, Descriptions, List, Avatar } from 'antd';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,6 +18,7 @@ import { Progress } from 'antd';
 import { stopReceive } from "../redux/reducers/receivingSlice";
 
 const { Content } = Layout;
+const { Panel } = Collapse;
 const Dashboard = () => {
 
   const clientData = useSelector(state => state.clientData)
@@ -42,11 +43,19 @@ const Dashboard = () => {
   const [trainingLoss, settrainingLoss] = useState([])
   const [testLoss, settestLoss] = useState([])
   const [roundTimes, setroundTimes] = useState([])
+  const [currRound, setcurrRound] = useState(0)
   const [results, setResults] = useState(false)
   const [renderChart, setRenderChart] = useState(false)
   const [lostdata, setlossdata] = useState(null)
   const [chartLabels] = useState([])
   const [datacount, setdatacount] = useState(0)
+
+  const [taskName, settaskName] = useState("")
+  const [taskOverview, settaskOverview] = useState("")
+  const [taskScheme, settaskScheme] = useState("")
+  const [modelOverview, setmodelOverview] = useState("")
+  const [lossFunction, setlossFunction] = useState("")
+  const [optimizer, setoptimizer] = useState("")
 
   ChartJS.register(
     CategoryScale,
@@ -83,9 +92,14 @@ const Dashboard = () => {
       setminibatchtest(item.scheme.minibatchtest)
       setlr(item.scheme.lr)
       settotalClients(item.general.clients.length)
-
-      const activeClients = Math.max(Math.floor(clientFraction * totalClients), 1);
-
+      settaskName(item.general.task)
+      settaskOverview(item.general.taskOverview)
+      settaskScheme(item.general.method)
+      setmodelOverview(item.modelData.modelOverview)
+      setlossFunction(item.modelParam.loss)
+      setoptimizer(item.modelParam.optimizer)
+      const activeClients = Math.max(Math.floor(item.scheme.clientFraction * item.general.clients.length), 1);
+      console.log('clients  ', activeClients)
       setnoOfClients(activeClients)
 
     })
@@ -127,6 +141,7 @@ const Dashboard = () => {
       settrainingLoss(clientJson.train_loss.replace("[", "").replace("]", "").split(","))
       settestLoss(clientJson.test_loss.replace("[", "").replace("]", "").split(","))
       setroundTimes(clientJson.round_time.replace("[", "").replace("]", "").split(","))
+      setcurrRound(clientJson.round)
       setdatacount(datacount + 1)
       if (!chartLabels.includes(clientJson.round)) {
         chartLabels.push(clientJson.round)
@@ -223,6 +238,24 @@ const Dashboard = () => {
     ],
   }
 
+  const schemes = {
+    FedL: 'Federated Learning',
+    DistL: 'Distributed Learning'
+  };
+
+  const optimOptions = {
+    Adadelta: 'Adadelta', Adagrad: 'Adagrad', Adam: 'Adam', AdamW: 'AdamW', SparseAdam: 'SparseAdam', Adamax: 'Adamax',
+    ASGD: 'ASGD', LBFGS: 'LBFGS', NAdam: 'NAdam', RAdam: 'RAdam', RMSprop: 'RMSprop', Rprop: 'Rprop', SGD: 'SGD'
+  };
+
+  const lossOptions = {
+    L1Loss: 'L1Loss',
+    MSELoss: 'MSELoss',
+    CrossEntropyLoss: 'CrossEntropyLoss',
+    BCELoss: 'BCELoss',
+    BCEWithLogitsLoss: 'BCEWithLogitsLoss'
+  };
+
 
   return (
 
@@ -234,83 +267,180 @@ const Dashboard = () => {
       <div style={{ width: '100%', align: 'left' }}>
         <h1 >Dashboard</h1>
       </div>
-      <Row>
-        <Col span={8} style={{ align: 'center' }}> <Card style={{ width: "100%", height: 300 }}>
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Com Rounds</Col>
-            <Col span={12}>{processing.processing && totalComRounds}</Col>
-          </Row>
 
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Local epochs number</Col>
-            <Col span={12}>{processing.processing && epochsNo}</Col>
-          </Row>
+      <Collapse bordered={false} defaultActiveKey={['1']} >
 
+        <Panel header="Training Visualization" key="1">
           <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Local Minibatch size</Col>
-            <Col span={12}>{processing.processing && minibatch}</Col>
-          </Row>
+            <Col span={8} style={{ align: 'center' }}> <Card style={{ width: "100%", height: 300 }}>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Com Rounds</Col>
+                <Col span={12}>{processing.processing && totalComRounds}</Col>
+              </Row>
 
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Test Minibatch size</Col>
-            <Col span={12}>{processing.processing && minibatchtest}</Col>
-          </Row>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Local epochs number</Col>
+                <Col span={12}>{processing.processing && epochsNo}</Col>
+              </Row>
 
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Learning rate</Col>
-            <Col span={12}>{processing.processing && lr}</Col>
-          </Row>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Local Minibatch size</Col>
+                <Col span={12}>{processing.processing && minibatch}</Col>
+              </Row>
 
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Number of clients</Col>
-            <Col span={12}>{processing.processing && totalComRounds}</Col>
-          </Row>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Test Minibatch size</Col>
+                <Col span={12}>{processing.processing && minibatchtest}</Col>
+              </Row>
 
-          <Row>
-            <Col span={12} style={{ textAlign: 'left' }}>Client Fraction</Col>
-            <Col span={12}>{processing.processing && clientFraction}</Col>
-          </Row>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Learning rate</Col>
+                <Col span={12}>{processing.processing && lr}</Col>
+              </Row>
 
-        </Card></Col>
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Active Clients</Col>
+                <Col span={12}>{processing.processing && noOfClients}</Col>
+              </Row>
 
-        <Col span={8} style={{ align: 'center' }}>
-          <Row>
-            <Card style={{ width: "100%", height: 300 }}>
-              {currentEpoch.map(client => (
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Total Clients</Col>
+                <Col span={12}>{processing.processing && totalClients}</Col>
+              </Row>
+
+              <Row>
+                <Col span={12} style={{ textAlign: 'left' }}>Client Fraction</Col>
+                <Col span={12}>{processing.processing && clientFraction}</Col>
+              </Row>
+
+            </Card></Col>
+
+            <Col span={6} style={{ align: 'center' }}>
+              <Row align="middle">
+                <Card style={{ width: "100%", height: 300 }}>
+
+
+                  <Progress type="circle" percent={(currRound / totalComRounds) * 100} format={() => `${currRound} rounds`} style={{ marginTop: 50 }} />
+                  {/* <Progress type="circle" percent={75} format={(percent) => `${percent} Days`} /> */}
+
+                  {/* {currentEpoch.map(client => (
                 <Row>
                   <Col span={8} style={{ textAlign: 'left' }}> {Object.keys(client)[0]} </Col>
                   <Col span={16} style={{ textAlign: 'center' }}> <Progress percent={Math.round((client[Object.keys(client)[0]] / epochsNo) * 100, 0)} /> </Col>
                 </Row>
                 // <Progress percent={( currentEpoch[client]/ epochsNo) * 100} />
-              ))}
-              {/* {trainingList} */}
+              ))} */}
+                  {/* {trainingList} */}
 
-            </Card>
+                </Card>
+              </Row>
+            </Col>
+            <Col span={10} style={{ align: 'center' }}>
+              <Row>
+                <Card style={{ width: "100%", height: 300 }}>
+                  {renderChart && <Line options={timeOptions} data={timedata} />}
+                </Card>
+              </Row>
+            </Col>
           </Row>
-        </Col>
-        <Col span={8} style={{ align: 'center' }}>
+          {renderChart && <Row>
+            <Col span={12}>
+              <Card style={{ width: "100%", height: 500 }}>
+                <Line options={lossoptions} data={lossdata} />
+              </Card>
+            </Col>
+            <Col span={12}>
+
+              <Card style={{ width: "100%", height: 500 }}>
+                <Line options={accoptions} data={accdata} />
+
+              </Card>
+            </Col>
+
+          </Row>}
+        </Panel>
+      </Collapse>
+
+      <Collapse bordered={false} defaultActiveKey={['1']} >
+
+
+        <Panel header="Training Overview">
           <Row>
-            <Card style={{ width: "100%", height: 300 }}>
-              {renderChart && <Line options={timeOptions} data={timedata} />}
-            </Card>
+            <Col span={12}>
+
+              <Card>
+                <List
+                  itemLayout="horizontal"
+                  align="left"
+                  size="small">
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Task name"
+                      description={taskName}
+                    />
+                  </List.Item>
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Task Overview"
+                      description={taskOverview}
+                    />
+                  </List.Item>
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Model Overview"
+                      description={modelOverview}
+                    />
+                  </List.Item>
+
+                </List>
+              </Card>
+
+            </Col>
+
+            <Col span={12}>
+
+              <Card>
+                <List
+                  itemLayout="horizontal"
+                  align="left"
+                  size="small">
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Training Scheme"
+                      description={schemes[taskScheme]}
+                    />
+                  </List.Item>
+
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Loss function"
+                      description={lossOptions[lossFunction]}
+                    />
+                  </List.Item>
+
+                  <List.Item>
+                    <List.Item.Meta
+
+                      title="Optimizer"
+                      description={optimOptions[optimizer]}
+                    />
+                  </List.Item>
+                </List>
+              </Card>
+
+            </Col>
           </Row>
-        </Col>
-      </Row>
-      {renderChart && <Row>
-        <Col span={12}>
-          <Card style={{ width: "100%", height: 500 }}>
-            <Line options={lossoptions} data={lossdata} />
-          </Card>
-        </Col>
-        <Col span={12}>
 
-          <Card style={{ width: "100%", height: 500 }}>
-            <Line options={accoptions} data={accdata} />
 
-          </Card>
-        </Col>
 
-      </Row>}
+
+        </Panel>
+      </Collapse>
 
     </Content>
   )
