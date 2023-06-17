@@ -42,11 +42,11 @@ const ModelCard = (props) => {
     //   };
     return (
 
-        <Card title="Model Information"
+        <Card title="Model Overview"
             headStyle={{ fontWeight: 800, fontSize: 24 }}
             bodyStyle={{ backgroundColor: 'white' }}
             bordered={true}
-            style={{ width: '100%', boxShadow: "5px 8px 24px 5px rgba(208, 216, 243, 0.6)" }}>
+            style={{ width: '100%', boxShadow: "5px 8px 24px 5px rgba(208, 216, 243, 0.6)", marginTop: '10px', marginBottom: '10px' }}>
 
             <Form form={form} labelCol={{ span: 10 }}
                 wrapperCol={{ span: 24 }}
@@ -55,8 +55,8 @@ const ModelCard = (props) => {
                 style={{ width: '90%' }}>
 
                 <Form.Item
-                    label="Task Overview"
-                    name="taskOverview"
+                    label="Model Overview"
+                    name="modelOverview"
                     rules={[{ required: false }]}
                 >
                     <TextArea rows={4} />
@@ -76,16 +76,16 @@ const ModelCard = (props) => {
                         </Upload.Dragger>
                     </Form.Item>
                 </Form.Item>
-
+{/* 
                 <Form.Item
                     label="Enter the Host IP"
                     name="host"
                     rules={[{ required: true, message: 'Host IP is required' }]}
                 >
                     <Input placeholder="Host IP is required" />
-                </Form.Item>
+                </Form.Item> */}
 
-                <Form.List name="clients">
+                {/* <Form.List name="clients">
                     {(fields, { add, remove }) => (
                         <>
                             {fields.map((field) => (
@@ -116,7 +116,7 @@ const ModelCard = (props) => {
                             </Form.Item>
                         </>
                     )}
-                </Form.List>
+                </Form.List> */}
             </Form>
         </Card>
 

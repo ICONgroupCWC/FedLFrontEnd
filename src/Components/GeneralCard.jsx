@@ -54,7 +54,7 @@ const GeneralCard = (props) => {
 
                 <Form.Item
                     label="Task Overview"
-                    name="task"
+                    name="taskOverview"
                     rules={[{ required: false }]}
                 >
                     <TextArea rows={4} placeholder="Optionally provide overview description of the task going to achieve here" style={{width:'100%'}}/>
