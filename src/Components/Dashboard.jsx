@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Col, Row, Card, Collapse, Descriptions, List, Avatar } from 'antd';
+import { Layout, Col, Row, Card, Collapse, Descriptions, List, Avatar, Button } from 'antd';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,7 +16,9 @@ import { Header } from "antd/es/layout/layout";
 import { useSelector, useDispatch } from 'react-redux'
 import { Progress } from 'antd';
 import { stopReceive } from "../redux/reducers/receivingSlice";
-
+import { Buffer } from "buffer";
+import unpickle from 'unpickle'
+import jpickle from "jpickle"
 const { Content } = Layout;
 const { Panel } = Collapse;
 const Dashboard = () => {
@@ -47,6 +49,7 @@ const Dashboard = () => {
   const [results, setResults] = useState(false)
   const [renderChart, setRenderChart] = useState(false)
   const [lostdata, setlossdata] = useState(null)
+  const [modelData, setmodelData] = useState(null)
   const [chartLabels] = useState([])
   const [datacount, setdatacount] = useState(0)
 
@@ -82,6 +85,40 @@ const Dashboard = () => {
       setRenderChart(true)
     }
   });
+
+  const headers = {'Content-Type':'application/json',
+                    'Access-Control-Allow-Origin':'*',
+                    'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS'}
+
+  const downloadModel = () => {
+
+    fetch('http://localhost:5000/receive_weights', {
+      method: 'GET',
+      headers: headers,
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        // Create blob link to download
+        const url = window.URL.createObjectURL(
+          new Blob([blob]),
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `model.pt`,
+        );
+
+        // Append to html link element page
+        document.body.appendChild(link);
+
+        // Start download
+        link.click();
+
+        // Clean up and remove the link
+        link.parentNode.removeChild(link);
+      });
+  }
 
   if (processing.processing && !initiated) {
     fedData.map(item => {
@@ -148,6 +185,12 @@ const Dashboard = () => {
       }
 
       setResults(true)
+
+      // if (clientJson.round === totalComRounds) {
+      //   console.log('downloading')
+      //   console.log(clientJson.model)
+      //   setmodelData(clientJson.model)
+      // }
     }
     console.log('loss results')
     console.log(trainingLoss)
@@ -434,6 +477,8 @@ const Dashboard = () => {
               </Card>
 
             </Col>
+
+            <Button onClick={downloadModel}>Download</Button>
           </Row>
 
 

@@ -14,6 +14,7 @@ import { startReceive } from "../redux/reducers/receivingSlice";
 import { serialize } from 'bson';
 import { Buffer } from 'buffer';
 import ModelParameterCard from "./ModelParameterCard";
+import DatasetCard from "./DatasetCard";
 
 
 const { Content } = Layout;
@@ -106,6 +107,7 @@ const Task = () => {
             {fedVisible && <FederatedCard onChangeData={handleChangeData}></FederatedCard>}
             <ModelCard onChangeData={handleChangeData}></ModelCard>
             <ModelParameterCard onChangeData={handleChangeData} ></ModelParameterCard>
+            <DatasetCard onChangeData={handleChangeData} ></DatasetCard>
             <div style={{ width: '100%', align: 'center' }}>
                 <Button align='center' type="primary" htmlType="submit" block onClick={handleOnsubmit}>
                     Submit
