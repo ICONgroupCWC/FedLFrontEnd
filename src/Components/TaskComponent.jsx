@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { BrowserRouter as Redirect,useNavigate} from "react-router-dom";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { Layout, Form, Input, Select, Card, Button, Space } from 'antd';
+import { Layout, Form, Input, Select, Card, Button, Space, Modal } from 'antd';
 import GeneralCard from "./GeneralCard"
 import ModelCard from "./ModelCard"
 import '../styles/Layout.css'
@@ -24,8 +25,26 @@ const Task = () => {
     let schemeState = { scheme: '' }
     const [jobData, setJobData] = useState({})
     const [fedVisible, setFedLState] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
-    // const count = useSelector(state => state.counter.value)
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleOk = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleDashboard = () => {
+        navigate("/dashboard");
+        setIsModalOpen(false);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
     const dispatch = useDispatch()
 
     let handleScheme = (schemeValue) => {
@@ -74,19 +93,19 @@ const Task = () => {
                 dispatch(startProcess())
                 webSocket.send(bsonData);
             }
-                //     webSocket.onopen = (event) => {
+            //     webSocket.onopen = (event) => {
 
-                //         dispatch(addFedData(jobData))
-                //         dispatch(startProcess())
-                //         webSocket.send(bsonData);
-                //       };
-                //     // ws.send(bsonData);
-                //   }
-                reader.readAsArrayBuffer(jobData.modelData.model[0].originFileObj);
+            //         dispatch(addFedData(jobData))
+            //         dispatch(startProcess())
+            //         webSocket.send(bsonData);
+            //       };
+            //     // ws.send(bsonData);
+            //   }
+            reader.readAsArrayBuffer(jobData.modelData.model[0].originFileObj);
 
-               
-            };
-        
+
+        };
+
 
         webSocket.onmessage = (event) => {
 
@@ -95,6 +114,8 @@ const Task = () => {
 
             dispatch(startReceive());
         }
+
+        showModal();
     }
 
     return (
@@ -103,7 +124,7 @@ const Task = () => {
             className="site-layout" style={{ padding: '0 50px', minHeight: '600px' }}>
 
             <GeneralCard onSelectScheme={handleScheme} onChangeData={handleChangeData}></GeneralCard>
-            
+
             {fedVisible && <FederatedCard onChangeData={handleChangeData}></FederatedCard>}
             <ModelCard onChangeData={handleChangeData}></ModelCard>
             <ModelParameterCard onChangeData={handleChangeData} ></ModelParameterCard>
@@ -113,6 +134,26 @@ const Task = () => {
                     Submit
                 </Button>
             </div>
+
+            <Modal title="Successfully submitted" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}
+
+
+                footer={[
+                    <Button key="back" onClick={handleCancel}>
+                        Cancel
+                    </Button>,
+                    <Button
+                        key="link"
+                        type="primary"
+                        onClick={handleDashboard}
+                    >
+                        Dashboard
+                    </Button>,
+                ]}
+            >
+                <p>Go to Dashboard to see progress</p>
+
+            </Modal>
 
         </Content>
 

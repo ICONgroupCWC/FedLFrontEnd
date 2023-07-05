@@ -21,6 +21,7 @@ import unpickle from 'unpickle'
 import jpickle from "jpickle"
 const { Content } = Layout;
 const { Panel } = Collapse;
+
 const Dashboard = () => {
 
   const clientData = useSelector(state => state.clientData)
@@ -92,9 +93,14 @@ const Dashboard = () => {
 
   const downloadModel = () => {
 
+    const data = {
+      user_name: "test",
+      task_name: taskName,
+  };
     fetch('http://localhost:5000/receive_weights', {
-      method: 'GET',
+      method: 'POST',
       headers: headers,
+      body: JSON.stringify(data),
     })
       .then((response) => response.blob())
       .then((blob) => {
@@ -363,7 +369,7 @@ const Dashboard = () => {
                 <Card style={{ width: "100%", height: 300 }}>
 
 
-                  <Progress type="circle" percent={(currRound / totalComRounds) * 100} format={() => `${currRound} rounds`} style={{ marginTop: 50 }} />
+                  <Progress type="circle" percent={(currRound / totalComRounds) * 100} format={() => `${(currRound / totalComRounds) * 100} %`} style={{ marginTop: 50 }} />
                   {/* <Progress type="circle" percent={75} format={(percent) => `${percent} Days`} /> */}
 
                   {/* {currentEpoch.map(client => (

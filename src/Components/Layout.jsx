@@ -1,12 +1,14 @@
 import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
 import {
   HomeOutlined,
-  ProfileOutlined
+  ProfileOutlined,
+  ControlOutlined
 } from '@ant-design/icons';
 import { Layout, Menu, theme, Icon } from 'antd';
 import React from 'react';
 import Dashboard from "./Dashboard";
 import Task from "./TaskComponent";
+import Compare from "./Compare";
 import '../styles/Layout.css'
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -58,6 +60,12 @@ const AppLayout = () => {
               <Link to="/task" />
             </Menu.Item>
 
+            <Menu.Item className='vertical-center' theme="dark" mode="inline" key="3">
+              <ControlOutlined />
+              <span>History</span>
+              <Link to="/compare" />
+            </Menu.Item>
+
           </Menu>
         </Sider>
         <Layout
@@ -102,17 +110,18 @@ const AppLayout = () => {
               }
             </div>
           </Content> */}
-          <Content style={{background:"#e6f4ff"}} >
+          <Content style={{background:"#e6f4ff", minHeight : `calc(100vh - 40px)` }} >
           <Routes>
             <Route exact path="/dashboard" element={<Dashboard/>} />
             <Route path="/task" element={<Task/>} />
+            <Route path="/compare" element={<Compare/>} />
             </Routes>
           </Content>
 
           <Footer
             style={{
               textAlign: 'center',
-              background: "#e6f4ff"
+              background: "#e6f9ff"
             }}
           >
             
