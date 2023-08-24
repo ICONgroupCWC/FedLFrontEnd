@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MinusCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from "@ant-design/icons";
 import { Form, Input, Select, Card, Button, Row, Col } from 'antd';
 import '../styles/Layout.css'
@@ -7,6 +7,26 @@ import '../styles/Layout.css'
 const ModelParameterCard = (props) => {
 
     const [form] = Form.useForm();
+    const [compression, setCompression] = useState({})
+
+    useEffect(() => {
+
+        if (compression == 'quantize') {
+            form.setFieldsValue({
+                z_point: '',
+                scale: '',
+                num_bits: '2'
+            });
+        }
+        else if(compression == 'topk' || compression == 'random' ) {
+            form.setFieldsValue({
+                r: ''
+            });
+
+        }
+    }, [form, compression]);
+
+
     const onFormLayoutChange = () => {
 
         let fieldVals = form.getFieldsValue()
@@ -15,13 +35,13 @@ const ModelParameterCard = (props) => {
         // props.genData = {...fieldVals}
         // console.log('fields ' , fieldVals)
     }
-    const optimOptions = [{value:'Adadelta', label: 'Adadelta'},{value:'Adagrad', label: 'Adagrad'}, {value:'Adam', label: 'Adam'},{value:'AdamW', label: 'AdamW'},
-                          {value:'SparseAdam', label: 'SparseAdam'},{value:'Adamax', label: 'Adamax'},{value:'ASGD', label: 'ASGD'},{value:'LBFGS', label: 'LBFGS'},
-                          {value:'NAdam', label: 'NAdam'},{value:'RAdam', label: 'RAdam'},{value:'RMSprop', label: 'RMSprop'},{value:'Rprop', label: 'Rprop'},
-                          {value:'SGD', label: 'SGD'},]
+    const optimOptions = [{ value: 'Adadelta', label: 'Adadelta' }, { value: 'Adagrad', label: 'Adagrad' }, { value: 'Adam', label: 'Adam' }, { value: 'AdamW', label: 'AdamW' },
+    { value: 'SparseAdam', label: 'SparseAdam' }, { value: 'Adamax', label: 'Adamax' }, { value: 'ASGD', label: 'ASGD' }, { value: 'LBFGS', label: 'LBFGS' },
+    { value: 'NAdam', label: 'NAdam' }, { value: 'RAdam', label: 'RAdam' }, { value: 'RMSprop', label: 'RMSprop' }, { value: 'Rprop', label: 'Rprop' },
+    { value: 'SGD', label: 'SGD' },]
 
-    const lossOptions = [{value:'L1Loss', label: 'L1Loss'}, {value:'MSELoss', label: 'MSELoss'}, {value:'CrossEntropyLoss', label: 'CrossEntropyLoss'}, 
-                         {value:'BCELoss', label: 'BCELoss'}, {value:'BCEWithLogitsLoss', label: 'BCEWithLogitsLoss'}, ]
+    const lossOptions = [{ value: 'L1Loss', label: 'L1Loss' }, { value: 'MSELoss', label: 'MSELoss' }, { value: 'CrossEntropyLoss', label: 'CrossEntropyLoss' },
+    { value: 'BCELoss', label: 'BCELoss' }, { value: 'BCEWithLogitsLoss', label: 'BCEWithLogitsLoss' },]
 
     return (
 
@@ -44,10 +64,10 @@ const ModelParameterCard = (props) => {
                 >
                     <Select
                         showSearch
-                        style={{ alignItems:'left'}}
+                        style={{ alignItems: 'left' }}
                         placeholder="Search to Select"
                         optionFilterProp="children"
-                        
+
                         filterOption={(input, option) => (option?.label ?? '').includes(input)}
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -63,10 +83,10 @@ const ModelParameterCard = (props) => {
                 >
                     <Select
                         showSearch
-                        style={{ alignItems:'left'}}
+                        style={{ alignItems: 'left' }}
                         placeholder="Search to Select"
                         optionFilterProp="children"
-                        
+
                         filterOption={(input, option) => (option?.label ?? '').includes(input)}
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -74,53 +94,94 @@ const ModelParameterCard = (props) => {
                         options={lossOptions}
                     />
                 </Form.Item>
-                {/* <Form.Item
-                    label="Local mini batch size"
-                    name="minibatch"
-                    rules={[{ required: true, message: 'Please enter a valid number for local minibatch size' }]}
-                >
-                    <Input placeholder="minibatch size eg:10" />
-                </Form.Item>
 
                 <Form.Item
-                    label="Number of local epochs"
-                    name="epoch"
-                    rules={[{ required: true, message: 'Please enter a valid number for local epoch number' }]}
+                    label="Compress"
+                    name="compress"
+                    rules={[{ required: true, message: 'Compress the Model for communication' }]}
                 >
-                    <Input placeholder="number of epoch eg:10" />
+                    <Select
+                        showSearch
+                        style={{ alignItems: 'left' }}
+                        placeholder="Search to Select"
+                        optionFilterProp="children"
+                        onChange={(value) => setCompression(value)}
+                        filterOption={(input, option) => (option?.label ?? '').includes(input)}
+                        filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
+                        options={[{ value: 'quantize', label: 'quantize' }, { value: 'topk', label: 'topk' }, { value: 'random', label: 'random' }, { value: false, label: 'No' }]}
+                    />
                 </Form.Item>
 
-                <Form.Item
-                    label="Learning rate"
-                    name="lr"
-                    rules={[{ required: true, message: 'Please enter a valid number for learning rate' }]}
-                >
-                    <Input placeholder="learning rate eg:0.001" />
-                </Form.Item>
+                {compression == 'quantize' && 
+                    <Row >
+                       
+                        <Col span={12}>
+                            <Row >
+                                <Col span={8}>
 
-                <Form.Item
-                    label="Client fraction"
-                    name="clientFraction"
-                    rules={[{ required: true, message: 'Please enter a valid amount for client fraction' }]}
-                >
-                    <Input placeholder="client fraction eg:0.1" />
-                </Form.Item>
+                                    <Form.Item
+                                        label="Scale"
+                                        name="scale"
+                                        rules={[{ required: true, message: 'Please provide a scale' }]}
+                                    >
+                                        <Input defaultValue = '' />
+                                    </Form.Item>
+                                </Col>
 
-                <Form.Item
-                    label="Local mini batch size for Test"
-                    name="minibatchtest"
-                    rules={[{ required: true, message: 'Please enter a valid number for local minibatch size for test' }]}
-                >
-                    <Input placeholder="test minibatch size eg:32" />
-                </Form.Item>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Zero Point"
+                                        name="z_point"
+                                        rules={[{ required: true, message: 'Please provide a zero point' }]}
+                                    >
+                                        <Input  defaultValue=''/>
+                                    </Form.Item>
+                                </Col>
 
-                <Form.Item
-                    label="Number of communication rounds"
-                    name="comRounds"
-                    rules={[{ required: true, message: 'Please enter a valid number for number of communication rounds' }]}
-                >
-                    <Input placeholder="communication round number eg:10" />
-                </Form.Item> */}
+
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="No Bits"
+                                        name="num_bits"
+                                        rules={[{ required: true, message: 'Please provide a zero point' }]}
+                                    >
+                                        <Select
+                                            defaultValue="2"
+
+                                            options={[
+                                                { value: '2', label: '2' },
+                                                { value: '4', label: '4' },
+                                                { value: '8', label: '8' },
+                                                { value: '16', label: '16' },
+                                            ]}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+
+                        </Col>
+
+
+
+                    </Row>
+
+                }
+
+                {(compression == 'topk' || compression == 'random' ) &&
+                    <Row >
+                        <Form.Item
+                            label="r"
+                            name="r"
+                            rules={[{ required: true, message: 'Please provide a r value' }]}>
+                            <Input />
+                        </Form.Item>
+
+                    </Row>
+
+                }
 
             </Form>
         </Card>

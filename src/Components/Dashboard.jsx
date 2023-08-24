@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Col, Row, Card, Collapse, Descriptions, List, Avatar, Button } from 'antd';
+import { Layout, Col, Row, Card, Collapse, Descriptions, List, Table, Button } from 'antd';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +19,7 @@ import { stopReceive } from "../redux/reducers/receivingSlice";
 import { Buffer } from "buffer";
 import unpickle from 'unpickle'
 import jpickle from "jpickle"
+import { dashboard_columns } from "../constants/table_data";
 const { Content } = Layout;
 const { Panel } = Collapse;
 
@@ -45,15 +46,17 @@ const Dashboard = () => {
   const [accuracy, setAccuracy] = useState([])
   const [trainingLoss, settrainingLoss] = useState([])
   const [testLoss, settestLoss] = useState([])
+  const [totalBytes, settotalBytes] = useState([])
   const [roundTimes, setroundTimes] = useState([])
   const [currRound, setcurrRound] = useState(0)
   const [results, setResults] = useState(false)
   const [renderChart, setRenderChart] = useState(false)
   const [lostdata, setlossdata] = useState(null)
   const [modelData, setmodelData] = useState(null)
+  const [tableData, setTableData] = useState(null)
   const [chartLabels] = useState([])
   const [datacount, setdatacount] = useState(0)
-
+  const [plots, setPlots] = useState(null)
   const [taskName, settaskName] = useState("")
   const [taskOverview, settaskOverview] = useState("")
   const [taskScheme, settaskScheme] = useState("")
@@ -87,16 +90,18 @@ const Dashboard = () => {
     }
   });
 
-  const headers = {'Content-Type':'application/json',
-                    'Access-Control-Allow-Origin':'*',
-                    'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS'}
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST,PATCH,OPTIONS'
+  }
 
   const downloadModel = () => {
 
     const data = {
       user_name: "test",
       task_name: taskName,
-  };
+    };
     fetch('http://localhost:5000/receive_weights', {
       method: 'POST',
       headers: headers,
@@ -145,6 +150,25 @@ const Dashboard = () => {
       console.log('clients  ', activeClients)
       setnoOfClients(activeClients)
 
+      if (("plots" in item.general) && (item.general.plots !== undefined)) {
+        setPlots(item.general.plots)
+      }
+
+      let table_data = [{
+        key: '1',
+        rounds: item.scheme.comRounds,
+        epoch: item.scheme.epoch,
+        minibatch: item.scheme.minibatch,
+        tminibatch: item.scheme.minibatchtest,
+        learningRate: item.scheme.lr,
+        clients: activeClients,
+        fraction: item.scheme.clientFraction
+      }]
+      console.log('table data ', table_data)
+
+      setTableData(table_data)
+      console.log('table data is set')
+
     })
 
 
@@ -184,6 +208,7 @@ const Dashboard = () => {
       settrainingLoss(clientJson.train_loss.replace("[", "").replace("]", "").split(","))
       settestLoss(clientJson.test_loss.replace("[", "").replace("]", "").split(","))
       setroundTimes(clientJson.round_time.replace("[", "").replace("]", "").split(","))
+      settotalBytes(clientJson.total_bytes.replace("[", "").replace("]", "").split(","))
       setcurrRound(clientJson.round)
       setdatacount(datacount + 1)
       if (!chartLabels.includes(clientJson.round)) {
@@ -203,6 +228,7 @@ const Dashboard = () => {
     console.log(testLoss)
     console.log('labels ')
     console.log(chartLabels)
+    console.log('table  ', tableData)
 
   }
 
@@ -244,6 +270,21 @@ const Dashboard = () => {
       },
     },
   };
+
+  let byteOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Bytes vs Accuracy',
+      },
+    },
+  };
+
+  const plot_options = { "Train/Test loss": lossoptions, "Test Accuracy": accoptions, "Round times": timeOptions, "Total Bytes": byteOptions }
 
   let lossdata = {
     labels: chartLabels,
@@ -287,6 +328,20 @@ const Dashboard = () => {
     ],
   }
 
+  let byteData = {
+    labels: totalBytes,
+    datasets: [
+      {
+        label: 'test accuracy',
+        data: accuracy,
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)'
+      }
+    ],
+  }
+
+  const plot_data = { "Train/Test loss": lossdata, "Test Accuracy": accdata, "Round times": timedata, "Total Bytes": byteData }
+
   const schemes = {
     FedL: 'Federated Learning',
     DistL: 'Distributed Learning'
@@ -321,48 +376,56 @@ const Dashboard = () => {
 
         <Panel header="Training Visualization" key="1">
           <Row>
-            <Col span={8} style={{ align: 'center' }}> <Card style={{ width: "100%", height: 300 }}>
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Com Rounds</Col>
-                <Col span={12}>{processing.processing && totalComRounds}</Col>
-              </Row>
+            <Col span={18} style={{ align: 'center' }}>
+              <Card style={{ width: "100%", height: 300 }}>
+                {initiated &&
+                  <Table
+                    pagination={false}
+                    bordered
+                    dataSource={tableData} columns={dashboard_columns} />}
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Local epochs number</Col>
-                <Col span={12}>{processing.processing && epochsNo}</Col>
-              </Row>
+                {/* <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Com Rounds</Col>
+                  <Col span={12}>{processing.processing && totalComRounds}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Local Minibatch size</Col>
-                <Col span={12}>{processing.processing && minibatch}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Local epochs number</Col>
+                  <Col span={12}>{processing.processing && epochsNo}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Test Minibatch size</Col>
-                <Col span={12}>{processing.processing && minibatchtest}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Local Minibatch size</Col>
+                  <Col span={12}>{processing.processing && minibatch}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Learning rate</Col>
-                <Col span={12}>{processing.processing && lr}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Test Minibatch size</Col>
+                  <Col span={12}>{processing.processing && minibatchtest}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Active Clients</Col>
-                <Col span={12}>{processing.processing && noOfClients}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Learning rate</Col>
+                  <Col span={12}>{processing.processing && lr}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Total Clients</Col>
-                <Col span={12}>{processing.processing && totalClients}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Active Clients</Col>
+                  <Col span={12}>{processing.processing && noOfClients}</Col>
+                </Row>
 
-              <Row>
-                <Col span={12} style={{ textAlign: 'left' }}>Client Fraction</Col>
-                <Col span={12}>{processing.processing && clientFraction}</Col>
-              </Row>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Total Clients</Col>
+                  <Col span={12}>{processing.processing && totalClients}</Col>
+                </Row>
 
-            </Card></Col>
+                <Row>
+                  <Col span={12} style={{ textAlign: 'left' }}>Client Fraction</Col>
+                  <Col span={12}>{processing.processing && clientFraction}</Col>
+                </Row> */}
+
+              </Card>
+            </Col>
 
             <Col span={6} style={{ align: 'center' }}>
               <Row align="middle">
@@ -384,29 +447,89 @@ const Dashboard = () => {
                 </Card>
               </Row>
             </Col>
-            <Col span={10} style={{ align: 'center' }}>
-              <Row>
-                <Card style={{ width: "100%", height: 300 }}>
-                  {renderChart && <Line options={timeOptions} data={timedata} />}
-                </Card>
-              </Row>
+            {/* <Col span={7} style={{ align: 'center' }}>
+
+              <Card style={{ width: "100%", height: 300 }}>
+                {renderChart && <Line options={timeOptions} data={timedata} />}
+              </Card>
+
             </Col>
+            <Col span={7} style={{ align: 'center' }}>
+
+              <Card style={{ width: "100%", height: 300 }}>
+                {renderChart && <Line options={byteOptions} data={byteData} />}
+              </Card>
+
+            </Col> */}
           </Row>
-          {renderChart && <Row>
-            <Col span={12}>
-              <Card style={{ width: "100%", height: 500 }}>
-                <Line options={lossoptions} data={lossdata} />
-              </Card>
-            </Col>
-            <Col span={12}>
+          {renderChart && plots !== undefined && plots.length < 3 &&
+            <Row>
+              {plots.map((plot) =>
 
-              <Card style={{ width: "100%", height: 500 }}>
-                <Line options={accoptions} data={accdata} />
+                <Col span={12}>
+                  <Card >
+                    <Line options={plot_options[plot]} data={plot_data[plot]} />
+                  </Card>
+                </Col>
 
-              </Card>
-            </Col>
 
-          </Row>}
+              )}
+            </Row>
+
+          }
+
+          {renderChart && plots !== undefined && plots.length > 2 &&
+
+
+            <Row>
+              {plots.slice(0, 2).map((plot) =>
+
+                <Col span={12}>
+                  <Card >
+                    <Line options={plot_options[plot]} data={plot_data[plot]} />
+                  </Card>
+                </Col>
+
+
+              )}
+            </Row>}
+
+          {renderChart && plots !== undefined && plots.length > 2 &&
+
+
+            <Row>
+              {plots.slice(2, 4).map((plot) =>
+
+                <Col span={12}>
+                  <Card >
+                    <Line options={plot_options[plot]} data={plot_data[plot]} />
+                  </Card>
+                </Col>
+
+
+              )}
+            </Row>}
+          {/* {renderChart &&
+            <Row>
+              {(plots !== undefined && plots.includes("Round times")) && <Col span={plots.includes("Total Bytes") ? 12 : 12}>
+                <Card >
+                  <Line options={timeOptions} data={timedata} />
+                </Card>
+              </Col>}
+              {
+                (plots !== undefined && plots.includes("Total Bytes")) &&
+                <Col span={plots.includes("Round times") ? 12 : 24}>
+
+                  <Card >
+                    <Line options={byteOptions} data={byteData} />
+
+                  </Card>
+                </Col>
+
+              }
+            </Row>
+
+          } */}
         </Panel>
       </Collapse>
 

@@ -154,7 +154,8 @@ const Compare = () => {
         minibatch: scheme_item.minibatch_size,
         testMinibacth: scheme_item.test_batch_size,
         learningRate: scheme_item.learning_rate,
-        epoch: scheme_item.local_epoch
+        epoch: scheme_item.local_epoch,
+        compress: scheme_item.compress
       }
 
       let train_loss = {

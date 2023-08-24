@@ -7,10 +7,11 @@ import '../styles/Layout.css'
 const FederatedCard = (props) => {
 
     const [form] = Form.useForm();
+    const [scheduler, setscheduler] = useState('')
     const onFormLayoutChange = () => {
 
         let fieldVals = form.getFieldsValue()
-        props.onChangeData({scheme : {...fieldVals}})
+        props.onChangeData({ scheme: { ...fieldVals } })
         // props.set
         // props.genData = {...fieldVals}
         // console.log('fields ' , fieldVals)
@@ -52,6 +53,33 @@ const FederatedCard = (props) => {
                 >
                     <Input placeholder="learning rate eg:0.001" />
                 </Form.Item>
+
+                <Form.Item
+                    label="Scheduler Type"
+                    name="scheduler"
+                    rules={[{ required: true }]}
+                >
+                    <Select
+                        onChange={(value) => setscheduler(value)}
+                        options={[
+                            { value: 'full', label: 'Full' },
+                            { value: 'random', label: 'Random' },
+                            { value: 'round_robin', label: 'Round Robin' },
+                            { value: 'latency', label: 'Latency Proportional' },
+
+                        ]}
+                    />
+                </Form.Item>
+
+                {  scheduler == 'latency' &&
+                    <Form.Item
+                        label="No of Rounds for Latency Average "
+                        name="latency_avg"
+                        rules={[{ required: true, message: 'Please enter a number of rounds needed for latency averaging' }]}
+                    >
+                        <Input placeholder="client fraction eg:1" />
+                    </Form.Item>
+                }
 
                 <Form.Item
                     label="Client fraction"

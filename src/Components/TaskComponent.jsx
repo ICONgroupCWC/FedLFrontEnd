@@ -115,7 +115,7 @@ const Task = () => {
             dispatch(startReceive());
         }
 
-        showModal();
+        // showModal();
     }
 
     return (

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { Form, Input, Select, Card, Button, Space } from 'antd';
+import { Form, Input, Select, Card, Button, Space, Checkbox } from 'antd';
 import '../styles/Layout.css'
 
+const CheckboxGroup = Checkbox.Group;
 const { TextArea } = Input;
 const GeneralCard = (props) => {
 
@@ -25,11 +26,8 @@ const GeneralCard = (props) => {
     const onFinish = (val) => {
         console.log('on finish ' , val)
     }
-    // handleChange = e => {
-    //     // Use e.target.name as the computed property name, 
-    //     // so it can be used for infinite number of inputs
-    //     this.setState({[e.target.name]: e.target.value});
-    //   };
+    const plotOptions = ['Train/Test loss', 'Test Accuracy', 'Round times', 'Total Bytes'];
+    
     return (
 
         <Card title="General Information"
@@ -124,6 +122,16 @@ const GeneralCard = (props) => {
                         </>
                     )}
                 </Form.List>
+
+                <Form.Item
+                    label="Select Plots Required"
+                    labelCol={{ span: 4 }}
+                    wrapperCol={{span:8}}
+                    name="plots"
+                    style={{ display: 'inline', width: 'calc(80% - 8px)' }}
+                >
+                    <CheckboxGroup  options={plotOptions} />
+                </Form.Item>
             </Form>
         </Card>
 
