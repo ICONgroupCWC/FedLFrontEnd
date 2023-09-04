@@ -1,33 +1,25 @@
 import React, { useState } from "react";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { Form, Input, Select, Card, Button, Space, Checkbox } from 'antd';
+import { Form, Input, Select, Card, Button, Space, Checkbox, Row } from 'antd';
 import '../styles/Layout.css'
 
 const CheckboxGroup = Checkbox.Group;
 const { TextArea } = Input;
 const GeneralCard = (props) => {
 
-    // const [formData, setFormData] = useState({task:'', method:'', host:'', scheme:''})
     const handleSchemeChange = (value) => {
         props.onSelectScheme(value);
     }
-    
+
     const [form] = Form.useForm();
     let formData = {}
     const onFormLayoutChange = () => {
 
         let fieldVals = form.getFieldsValue()
-        props.onChangeData({general : {...fieldVals}})
-        // props.set
-        // props.genData = {...fieldVals}
-        // console.log('fields ' , fieldVals)
+        props.onChangeData({ general: { ...fieldVals } })
+       
     }
 
-    const onFinish = (val) => {
-        console.log('on finish ' , val)
-    }
-    const plotOptions = ['Train/Test loss', 'Test Accuracy', 'Round times', 'Total Bytes'];
-    
     return (
 
         <Card title="General Information"
@@ -36,7 +28,7 @@ const GeneralCard = (props) => {
             bordered={true}
             style={{ width: '100%', boxShadow: "5px 8px 24px 5px rgba(208, 216, 243, 0.6)" }}>
 
-            <Form form = {form} labelCol={{ span: 10 }}
+            <Form form={form} labelCol={{ span: 10 }}
                 wrapperCol={{ span: 24 }}
                 layout="vertical"
                 onValuesChange={onFormLayoutChange}
@@ -47,7 +39,7 @@ const GeneralCard = (props) => {
                     name="task"
                     rules={[{ required: true, message: 'Task name is required' }]}
                 >
-                    <Input placeholder="Task name is required" style={{width:'100%'}}/>
+                    <Input placeholder="Task name is required" style={{ width: '100%' }} />
                 </Form.Item>
 
                 <Form.Item
@@ -55,7 +47,7 @@ const GeneralCard = (props) => {
                     name="taskOverview"
                     rules={[{ required: false }]}
                 >
-                    <TextArea rows={4} placeholder="Optionally provide overview description of the task going to achieve here" style={{width:'100%'}}/>
+                    <TextArea rows={4} placeholder="Optionally provide overview description of the task going to achieve here" style={{ width: '100%' }} />
                 </Form.Item>
 
                 <Form.Item
@@ -71,15 +63,7 @@ const GeneralCard = (props) => {
 
                         ]}
                     />
-                    {/* 
-                <Select
-                    onChange={(e) => setScheme(schemeOptions[e])}
                     
-                >
-                    {schemeOptions.map((option, idx) => (
-                        <option value={idx}>{option}</option>
-                    ))}
-                </Select> */}
                 </Form.Item>
 
                 <Form.Item
@@ -123,15 +107,72 @@ const GeneralCard = (props) => {
                     )}
                 </Form.List>
 
-                <Form.Item
-                    label="Select Plots Required"
-                    labelCol={{ span: 4 }}
-                    wrapperCol={{span:8}}
-                    name="plots"
-                    style={{ display: 'inline', width: 'calc(80% - 8px)' }}
-                >
-                    <CheckboxGroup  options={plotOptions} />
-                </Form.Item>
+                <Row>Select Plots Required</Row>
+                <Form.List name="plots"
+                    label="Select Plots Required">
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map((field) => (
+                                <Space
+                                    key={field.key}
+                                    style={{ display: "flex", marginBottom: 8, marginLeft: 8 }}
+                                    align="baseline"
+                                >
+                                    <div>X axis</div>
+                                    <Form.Item
+                                        {...field}
+                                        key={'x'+field.key}
+                                        name={[field.name, "x_axis"]}
+                                    >
+                                        <Select
+                                            style={{ display: 'inline-block', width: 300 }}
+                                            options={[
+                                                { value: 'testAccuracy', label: 'Test Accuracy' },
+                                                { value: 'trainLoss', label: 'Train Loss' },
+                                                { value: 'commRounds', label: 'Communication Rounds' },
+                                                { value: 'totTimes', label: 'Communication Round Times' },
+                                                { value: 'transferedBytes', label: 'Bytes Transferred' },
+                                                { value: 'testLoss', label: 'Test Loss' }
+
+                                            ]}
+                                        />
+                                    </Form.Item>
+                                    <div>Y axis</div>
+                                    <Form.Item
+                                        {...field}
+                                        key={'y'+field.key}
+                                        name={[field.name, "y_axis"]}
+                                    >
+                                        <Select
+                                            style={{ display: 'inline-block', width: 300 }}
+                                            options={[
+                                                { value: 'testAccuracy', label: 'Test Accuracy' },
+                                                { value: 'trainLoss', label: 'Train Loss' },
+                                                { value: 'commRounds', label: 'Communication Rounds' },
+                                                { value: 'totTimes', label: 'Communication Round Times' },
+                                                { value: 'transferedBytes', label: 'Bytes Transferred' },
+                                                { value: 'testLoss', label: 'Test Loss' }
+
+                                            ]}
+                                        />
+                                    </Form.Item>
+                                    <MinusCircleOutlined style={{ fontSize: '16px', color: '#f54542' }} onClick={() => remove(field.name)} />
+                                </Space>
+                            ))}
+                            <Form.Item>
+                                <Button
+                                    type="dashed"
+                                    onClick={() => add()}
+                                    block
+                                    icon={<PlusOutlined />}
+                                >
+                                    Add Plot
+                                </Button>
+                            </Form.Item>
+                        </>
+                    )}
+                </Form.List>
+
             </Form>
         </Card>
 

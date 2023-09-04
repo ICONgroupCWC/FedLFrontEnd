@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { MinusCircleOutlined, PlusOutlined, UpOutlined, DownOutlined } from "@ant-design/icons";
-import { Form, Input, Select, Card, Button, Row, Col } from 'antd';
+import { Form, Input, Select, Card } from 'antd';
 import '../styles/Layout.css'
 
 
@@ -86,7 +85,7 @@ const FederatedCard = (props) => {
                     name="clientFraction"
                     rules={[{ required: true, message: 'Please enter a valid amount for client fraction' }]}
                 >
-                    <Input placeholder="client fraction eg:0.1" />
+                    <Input  disabled={scheduler=='full'}  placeholder="client fraction eg:0.1" />
                 </Form.Item>
 
                 <Form.Item

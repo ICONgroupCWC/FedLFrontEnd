@@ -1,35 +1,51 @@
-export const task_columns = [
-  {
-    title: 'Task Name',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: 'Scheme',
-    dataIndex: 'scheme',
-    key: 'scheme',
-  },
-  {
-    title: 'Date',
-    dataIndex: 'date',
-    key: 'date',
-  },
-  {
-    title: 'Comm Rounds',
-    dataIndex: 'commRounds',
-    key: 'commRounds',
-  },
-  {
-    title: 'Total clients',
-    dataIndex: 'clients',
-    key: 'clients',
-  },
-  {
-    title: 'Client Fraction',
-    dataIndex: 'fraction',
-    key: 'fraction',
-  },
-];
+// export const TaskTable = ({taskData, handleDelete}) =>
+// {
+// const task_columns = [
+//   {
+//     title: 'Task Name',
+//     dataIndex: 'name',
+//     key: 'name',
+//   },
+//   {
+//     title: 'Scheme',
+//     dataIndex: 'scheme',
+//     key: 'scheme',
+//   },
+//   {
+//     title: 'Date',
+//     dataIndex: 'date',
+//     key: 'date',
+//   },
+//   {
+//     title: 'Comm Rounds',
+//     dataIndex: 'commRounds',
+//     key: 'commRounds',
+//   },
+//   {
+//     title: 'Total clients',
+//     dataIndex: 'clients',
+//     key: 'clients',
+//   },
+//   {
+//     title: 'Client Fraction',
+//     dataIndex: 'fraction',
+//     key: 'fraction',
+//   },
+
+//   {
+//     title: 'Remove',
+//     key: 'remove',
+//     dataIndex: 'remove',
+//     render: (text, record) => (
+//      <button onClick={()=> handleDelete(record)}>
+//        {"Button Text"}
+//      </button>
+//     ),
+//   },
+// ];
+
+//   return 
+// }
 
 
 export const scheme_columns = [

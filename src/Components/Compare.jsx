@@ -20,7 +20,8 @@ import { Buffer } from "buffer";
 import unpickle from 'unpickle'
 import jpickle from "jpickle"
 import { fetchData } from "../utils/http-client";
-import { task_columns, scheme_columns } from "../constants/table_data";
+import { scheme_columns } from "../constants/table_data";
+import { TaskTable } from "./TaskTable";
 const { Content } = Layout;
 const { Panel } = Collapse;
 const { Search } = Input;
@@ -119,7 +120,7 @@ const Compare = () => {
     var b = Math.floor(Math.random() * 255);
     return "rgb(" + r + "," + g + "," + b + ")";
   };
-
+  let maxN = 0
   const map_tasks = () => {
 
     let task_all = []
@@ -128,7 +129,7 @@ const Compare = () => {
     let test_loss_all = []
     let round_time_all = []
     let test_accuracy_all = []
-    let maxN = 0
+    
     tasks.forEach(function (item, index) {
       let task_item = item.task
       let scheme_item = item.federated
@@ -256,6 +257,7 @@ const Compare = () => {
       user_name: "test",
       task_name: task_name
     }
+
     fetchData(task_data, 'receive_data').then((data) => {
       console.log('data ', data)
       settasks((prev_tasks) => [
@@ -266,6 +268,62 @@ const Compare = () => {
 
     setSelected(true)
     console.log('tasks ', taskList)
+
+ 
+  }
+
+  const handleDelete = (key) => {
+    console.log(key.name)
+    setschemeData(schemeData.filter(function(element){
+      return element.name != key.name
+    }))
+
+    settaskData(taskData.filter(function(element){
+      return element.name != key.name
+    }))
+
+    const acc_new = accuracy.datasets.filter(function(element){
+      return element.label != key.name
+    })
+
+    const test_loss_new = testLoss.datasets.filter(function(element){
+      return element.label != key.name
+    })
+
+    const train_loss_new = trainLoss.datasets.filter(function(element){
+      return element.label != key.name
+    })
+
+    const round_time_new = roundTime.datasets.filter(function(element){
+      return element.label != key.name
+    })
+    
+    setaccuracy({
+      labels: Array.from(Array(maxN).keys()).map(v => v + 1),
+      datasets: acc_new
+    })
+
+    settestLoss({
+      labels: Array.from(Array(maxN).keys()).map(v => v + 1),
+      datasets: test_loss_new
+    })
+
+    settrainLoss({
+      labels: Array.from(Array(maxN).keys()).map(v => v + 1),
+      datasets: train_loss_new
+    })
+
+    setroundTime({
+      labels: Array.from(Array(maxN).keys()).map(v => v + 1),
+      datasets: round_time_new
+    })
+    settasks(tasks.filter(function(element){
+      return element.task.name != key.name
+    }))
+  //   setschemeData()
+  //   {people: this.state.people.filter(function(person) { 
+  //     return person !== e.target.value 
+  // })}
   }
 
   return (
@@ -335,13 +393,16 @@ const Compare = () => {
 
 
             <h1 >Task Overview</h1>
-
+            {/* 
             <Table
               pagination={false}
               bordered
-              dataSource={taskData} columns={task_columns} />
+              dataSource={taskData} columns={task_columns} /> */}
+            <TaskTable
 
-
+              taskData={taskData}
+              handleDelete = {handleDelete}
+            />
 
             <h1 >Scheme Overview</h1>
             <Table

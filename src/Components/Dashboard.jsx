@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Col, Row, Card, Collapse, Descriptions, List, Table, Button } from 'antd';
+import { Layout, Col, Row, Card, Collapse, Descriptions, List, Table, Button, Space } from 'antd';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,7 +31,7 @@ const Dashboard = () => {
   const receiving = useSelector(state => state.receiving)
   const [totalComRounds, settotalComRounds] = useState(0)
   const [epochsNo, setepochsNo] = useState(0)
-  const [clientFraction, setclientFractions] = useState(0.0)
+  const [clientFraction, setclientFractions] = useState(1)
   const [lr, setlr] = useState(0.0)
   const [minibatch, setminibatch] = useState(0)
   const [minibatchtest, setminibatchtest] = useState(0)
@@ -146,8 +146,13 @@ const Dashboard = () => {
       setmodelOverview(item.modelData.modelOverview)
       setlossFunction(item.modelParam.loss)
       setoptimizer(item.modelParam.optimizer)
+
+      if (item.scheme.scheduler == 'full') {
+
+        setclientFractions(1)
+      }
       const activeClients = Math.max(Math.floor(item.scheme.clientFraction * item.general.clients.length), 1);
-      console.log('clients  ', activeClients)
+
       setnoOfClients(activeClients)
 
       if (("plots" in item.general) && (item.general.plots !== undefined)) {
@@ -217,130 +222,58 @@ const Dashboard = () => {
 
       setResults(true)
 
-      // if (clientJson.round === totalComRounds) {
-      //   console.log('downloading')
-      //   console.log(clientJson.model)
-      //   setmodelData(clientJson.model)
-      // }
     }
-    console.log('loss results')
-    console.log(trainingLoss)
-    console.log(testLoss)
-    console.log('labels ')
-    console.log(chartLabels)
-    console.log('table  ', tableData)
+    // console.log('loss results')
+    // console.log(trainingLoss)
+    // console.log(testLoss)
+    // console.log('labels ')
+    // console.log(chartLabels)
+    // console.log('plots  ', plots)
 
   }
 
-  let lossoptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Training/Test Loss',
-      },
-    },
-  };
-
-  let accoptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Accuracy',
-      },
-    },
-  };
-
-  let timeOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Com Round Times',
-      },
-    },
-  };
-
-  let byteOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Bytes vs Accuracy',
-      },
-    },
-  };
-
-  const plot_options = { "Train/Test loss": lossoptions, "Test Accuracy": accoptions, "Round times": timeOptions, "Total Bytes": byteOptions }
-
-  let lossdata = {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: 'Training loss',
-        data: trainingLoss,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      },
-      {
-        label: 'Test Loss',
-        data: testLoss,
-        borderColor: 'rgb(53, 162, 235)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-      },
-    ],
+  const plot_data = { "testAccuracy": accuracy, "trainLoss": trainingLoss, "commRounds": chartLabels, "transferedBytes": totalBytes, "testLoss": testLoss , 'totTimes': roundTimes}
+  const plot_labels = {
+    "testAccuracy": 'Test accuracy', "trainLoss": 'Training loss', "commRounds": 'Communication round',
+    "transferedBytes": 'Total size (MB)', "testLoss": 'Test Loss', 'totTimes': 'Communication round time(s)'
   }
 
-  let accdata = {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: 'Test accuracy',
-        data: accuracy,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      }
-    ],
+  const getPlotInformation = (x_axis, y_axis) => {
+
+    let plot_name = plot_labels[x_axis] + ' vs ' + plot_labels[y_axis];
+    let plotOptions = {
+
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: plot_name,
+        },
+      },
+    }
+
+    let plotData = {
+      labels: plot_data[x_axis],
+      datasets: [
+        {
+          label: plot_labels[y_axis],
+          data: plot_data[y_axis],
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)'
+        }
+      ],
+    }
+
+    // console.log('plot information') 
+    // console.log(plotOptions)
+    // console.log(plotData)
+    return { 'options': plotOptions, 'data': plotData }
   }
 
-  let timedata = {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: 'Communication round times(s)',
-        data: roundTimes,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      }
-    ],
-  }
-
-  let byteData = {
-    labels: totalBytes,
-    datasets: [
-      {
-        label: 'test accuracy',
-        data: accuracy,
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)'
-      }
-    ],
-  }
-
-  const plot_data = { "Train/Test loss": lossdata, "Test Accuracy": accdata, "Round times": timedata, "Total Bytes": byteData }
+  // const plot_data = { "Train/Test loss": lossdata, "Test Accuracy": accdata, "Round times": timedata, "Total Bytes": byteData }
 
   const schemes = {
     FedL: 'Federated Learning',
@@ -384,46 +317,6 @@ const Dashboard = () => {
                     bordered
                     dataSource={tableData} columns={dashboard_columns} />}
 
-                {/* <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Com Rounds</Col>
-                  <Col span={12}>{processing.processing && totalComRounds}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Local epochs number</Col>
-                  <Col span={12}>{processing.processing && epochsNo}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Local Minibatch size</Col>
-                  <Col span={12}>{processing.processing && minibatch}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Test Minibatch size</Col>
-                  <Col span={12}>{processing.processing && minibatchtest}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Learning rate</Col>
-                  <Col span={12}>{processing.processing && lr}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Active Clients</Col>
-                  <Col span={12}>{processing.processing && noOfClients}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Total Clients</Col>
-                  <Col span={12}>{processing.processing && totalClients}</Col>
-                </Row>
-
-                <Row>
-                  <Col span={12} style={{ textAlign: 'left' }}>Client Fraction</Col>
-                  <Col span={12}>{processing.processing && clientFraction}</Col>
-                </Row> */}
-
               </Card>
             </Col>
 
@@ -433,103 +326,38 @@ const Dashboard = () => {
 
 
                   <Progress type="circle" percent={(currRound / totalComRounds) * 100} format={() => `${(currRound / totalComRounds) * 100} %`} style={{ marginTop: 50 }} />
-                  {/* <Progress type="circle" percent={75} format={(percent) => `${percent} Days`} /> */}
-
-                  {/* {currentEpoch.map(client => (
-                <Row>
-                  <Col span={8} style={{ textAlign: 'left' }}> {Object.keys(client)[0]} </Col>
-                  <Col span={16} style={{ textAlign: 'center' }}> <Progress percent={Math.round((client[Object.keys(client)[0]] / epochsNo) * 100, 0)} /> </Col>
-                </Row>
-                // <Progress percent={( currentEpoch[client]/ epochsNo) * 100} />
-              ))} */}
-                  {/* {trainingList} */}
-
                 </Card>
               </Row>
             </Col>
-            {/* <Col span={7} style={{ align: 'center' }}>
-
-              <Card style={{ width: "100%", height: 300 }}>
-                {renderChart && <Line options={timeOptions} data={timedata} />}
-              </Card>
-
-            </Col>
-            <Col span={7} style={{ align: 'center' }}>
-
-              <Card style={{ width: "100%", height: 300 }}>
-                {renderChart && <Line options={byteOptions} data={byteData} />}
-              </Card>
-
-            </Col> */}
           </Row>
-          {renderChart && plots !== undefined && plots.length < 3 &&
-            <Row>
-              {plots.map((plot) =>
 
-                <Col span={12}>
-                  <Card >
-                    <Line options={plot_options[plot]} data={plot_data[plot]} />
-                  </Card>
-                </Col>
+          {renderChart && plots !== undefined &&
 
+            <Space direction="horizontal" wrap style={{ display: 'flex', margin: '50px 50px' }}>
 
-              )}
-            </Row>
+              {
+
+                plots.map(plot => {
+
+                  let LineData = getPlotInformation(plot.x_axis, plot.y_axis);
+                  console.log('line data ');
+                  console.log(LineData);
+                  return (
+                    <Card
+                      style={{ height: '400px', width: '700px' }}
+                    >
+                      <Line options={LineData['options']} data={LineData['data']} />
+
+                    </Card>
+                  )
+                }
+                )
+              }
+
+            </Space>
 
           }
 
-          {renderChart && plots !== undefined && plots.length > 2 &&
-
-
-            <Row>
-              {plots.slice(0, 2).map((plot) =>
-
-                <Col span={12}>
-                  <Card >
-                    <Line options={plot_options[plot]} data={plot_data[plot]} />
-                  </Card>
-                </Col>
-
-
-              )}
-            </Row>}
-
-          {renderChart && plots !== undefined && plots.length > 2 &&
-
-
-            <Row>
-              {plots.slice(2, 4).map((plot) =>
-
-                <Col span={12}>
-                  <Card >
-                    <Line options={plot_options[plot]} data={plot_data[plot]} />
-                  </Card>
-                </Col>
-
-
-              )}
-            </Row>}
-          {/* {renderChart &&
-            <Row>
-              {(plots !== undefined && plots.includes("Round times")) && <Col span={plots.includes("Total Bytes") ? 12 : 12}>
-                <Card >
-                  <Line options={timeOptions} data={timedata} />
-                </Card>
-              </Col>}
-              {
-                (plots !== undefined && plots.includes("Total Bytes")) &&
-                <Col span={plots.includes("Round times") ? 12 : 24}>
-
-                  <Card >
-                    <Line options={byteOptions} data={byteData} />
-
-                  </Card>
-                </Col>
-
-              }
-            </Row>
-
-          } */}
         </Panel>
       </Collapse>
 
