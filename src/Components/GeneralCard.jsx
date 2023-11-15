@@ -7,12 +7,18 @@ const CheckboxGroup = Checkbox.Group;
 const { TextArea } = Input;
 const GeneralCard = (props) => {
 
+    
+    const [form] = Form.useForm();
+    const [algo, setalgo] = useState('')
+    let formData = {}
+
     const handleSchemeChange = (value) => {
         props.onSelectScheme(value);
     }
 
-    const [form] = Form.useForm();
-    let formData = {}
+    const handleAlgoChange = (value) => {
+        setalgo(value)
+    }
     const onFormLayoutChange = () => {
 
         let fieldVals = form.getFieldsValue()
@@ -60,6 +66,22 @@ const GeneralCard = (props) => {
                         options={[
                             { value: 'FedL', label: 'Federated Learning' },
                             { value: 'DistL', label: 'Distributed Learning' },
+
+                        ]}
+                    />
+                    
+                </Form.Item>
+
+                <Form.Item
+                    label="Algorithm type"
+                    name="algo"
+                    rules={[{ required: true, message: 'Type is required' }]}
+                >
+                    <Select
+                        onChange={(value) => handleAlgoChange(value)}
+                        options={[
+                            { value: 'Classification', label: 'Classification' },
+                            { value: 'Regression', label: 'Linear Regression' },
 
                         ]}
                     />
@@ -127,7 +149,7 @@ const GeneralCard = (props) => {
                                         <Select
                                             style={{ display: 'inline-block', width: 300 }}
                                             options={[
-                                                { value: 'testAccuracy', label: 'Test Accuracy' },
+                                                { value: 'testAccuracy', label: 'Test Accuracy'  , disabled: (algo=='Regression') },
                                                 { value: 'trainLoss', label: 'Train Loss' },
                                                 { value: 'commRounds', label: 'Communication Rounds' },
                                                 { value: 'totTimes', label: 'Communication Round Times' },
@@ -146,7 +168,7 @@ const GeneralCard = (props) => {
                                         <Select
                                             style={{ display: 'inline-block', width: 300 }}
                                             options={[
-                                                { value: 'testAccuracy', label: 'Test Accuracy' },
+                                                { value: 'testAccuracy', label: 'Test Accuracy' , disabled: (algo=='Regression')},
                                                 { value: 'trainLoss', label: 'Train Loss' },
                                                 { value: 'commRounds', label: 'Communication Rounds' },
                                                 { value: 'totTimes', label: 'Communication Round Times' },

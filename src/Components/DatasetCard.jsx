@@ -52,7 +52,7 @@ const DatasetCard = (props) => {
                                     filterSort={(optionA, optionB) =>
                                         (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                                     }
-                                    options={[{ value: 'text', label: 'text' }, { value: 'img', label: 'images' }]}
+                                    options={[{ value: 'text', label: 'text' }, { value: 'img', label: 'images' }, {value:'One D', label:"One D"}]}
                                 />
                             </Form.Item>
 
