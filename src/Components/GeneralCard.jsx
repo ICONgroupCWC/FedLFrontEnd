@@ -10,10 +10,12 @@ const GeneralCard = (props) => {
     
     const [form] = Form.useForm();
     const [algo, setalgo] = useState('')
+    const [scheme, setScheme] = useState('')
     let formData = {}
 
     const handleSchemeChange = (value) => {
         props.onSelectScheme(value);
+        setScheme(value)
     }
 
     const handleAlgoChange = (value) => {
@@ -64,8 +66,8 @@ const GeneralCard = (props) => {
                     <Select
                         onChange={(value) => handleSchemeChange(value)}
                         options={[
-                            { value: 'FedL', label: 'Federated Learning' },
-                            { value: 'DistL', label: 'Distributed Learning' },
+                            { value: 'FedL', label: 'Federated Learning - Fed AVG' },
+                            { value: 'FedLH', label: 'Federated Learning Heterogenious' },
 
                         ]}
                     />
@@ -153,8 +155,8 @@ const GeneralCard = (props) => {
                                                 { value: 'trainLoss', label: 'Train Loss' },
                                                 { value: 'commRounds', label: 'Communication Rounds' },
                                                 { value: 'totTimes', label: 'Communication Round Times' },
-                                                { value: 'transferedBytes', label: 'Bytes Transferred' },
-                                                { value: 'testLoss', label: 'Test Loss' }
+                                                { value: 'transferedBytes', label: 'Bytes Transferred' , disabled: (scheme == 'FedLH')},
+                                                { value: 'testLoss', label: 'Test Loss', disabled: (scheme == 'FedLH') }
 
                                             ]}
                                         />
@@ -172,8 +174,8 @@ const GeneralCard = (props) => {
                                                 { value: 'trainLoss', label: 'Train Loss' },
                                                 { value: 'commRounds', label: 'Communication Rounds' },
                                                 { value: 'totTimes', label: 'Communication Round Times' },
-                                                { value: 'transferedBytes', label: 'Bytes Transferred' },
-                                                { value: 'testLoss', label: 'Test Loss' }
+                                                { value: 'transferedBytes', label: 'Bytes Transferred' , disabled: (scheme == 'FedLH')},
+                                                { value: 'testLoss', label: 'Test Loss', disabled: (scheme == 'FedLH')  }
 
                                             ]}
                                         />

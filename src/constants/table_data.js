@@ -128,3 +128,27 @@ export const dashboard_columns = [{
   key: 'fraction',
 },
 ]
+
+export const dashboard_columns_hetero = [{
+  title: 'Comm Rounds',
+  dataIndex: 'rounds',
+  key: 'rounds',
+},
+
+{
+  title: 'batch size',
+  dataIndex: 'batch_size',
+  key: 'batch_size',
+},
+
+{
+  title: 'Learning rate-Rep',
+  dataIndex: 'rep_lr',
+  key: 'rep_lr',
+},
+{
+  title: 'Learning rate-Predictor',
+  dataIndex: 'pred_lr',
+  key: 'pred_lr',
+}
+]

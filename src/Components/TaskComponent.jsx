@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { BrowserRouter as Redirect,useNavigate} from "react-router-dom";
+import { BrowserRouter as Redirect, useNavigate } from "react-router-dom";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Layout, Form, Input, Select, Card, Button, Space, Modal } from 'antd';
 import GeneralCard from "./GeneralCard"
 import ModelCard from "./ModelCard"
+import ModelCardHetero from "./ModelCardHetero";
 import '../styles/Layout.css'
 import FederatedCard from "./FederatedCard";
+import FederatedHeteroCard from "./FederatedHetroCard";
 import axios from "axios";
 import { useDispatch } from 'react-redux'
 import { addFedData } from "../redux/reducers/fedDataSlice";
@@ -15,7 +17,10 @@ import { startReceive } from "../redux/reducers/receivingSlice";
 import { serialize } from 'bson';
 import { Buffer } from 'buffer';
 import ModelParameterCard from "./ModelParameterCard";
+import ModelParameterCardHetero from "./ModelParameterCardHetero";
 import DatasetCard from "./DatasetCard";
+// import { resolve } from "path";
+
 
 
 const { Content } = Layout;
@@ -24,7 +29,7 @@ const Task = () => {
 
     let schemeState = { scheme: '' }
     const [jobData, setJobData] = useState({})
-    const [fedVisible, setFedLState] = useState(false);
+    const [fedState, setFedLState] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -49,12 +54,13 @@ const Task = () => {
 
     let handleScheme = (schemeValue) => {
         schemeState.scheme = schemeValue;
-        if (schemeState.scheme == 'FedL') {
-            setFedLState(true)
-        }
-        else {
-            setFedLState(false)
-        }
+        setFedLState(schemeState.scheme)
+        // if (schemeState.scheme == 'FedL') {
+        //     setFedLState(true)
+        // }
+        // else {
+        //     setFedLState(false)
+        // }
     }
 
     const handleChangeData = (data) => {
@@ -66,7 +72,14 @@ const Task = () => {
 
     let handleOnsubmit = () => {
         console.log('submit data ', jobData)
-        const hosturl = "ws://" + jobData.general.host + ":8200/job_receive"
+        let hosturl;
+        if (fedState == 'FedL') {
+            hosturl = "ws://" + jobData.general.host + ":8200/job_receive"
+        }
+        else if (fedState == 'FedLH') {
+            hosturl = "ws://" + jobData.general.host + ":8200/job_receive_hetero"
+        }
+
         // axios.post(hostIp, jobData)
         // .then(response => console.log(response));]
         console.log('stringy job data ', JSON.stringify(jobData))
@@ -74,24 +87,93 @@ const Task = () => {
 
         let webSocket = new WebSocket(hosturl);
 
-
-
+        const reader = new FileReader();
+        const rep_reader = new FileReader();
+        const ext_reader = new FileReader();
+        let bsonData;
         webSocket.onopen = (event) => {
 
-            const reader = new FileReader();
-            let rawData = new ArrayBuffer();
-            let bsonData;
-            reader.onload = (e) => {
-                rawData = e.target.result;
-                const bufferData = Buffer.from(rawData);
-                bsonData = serialize({  // whatever js Object you need
-                    file: bufferData,
-                    jobData: jobData
-                });
+            if (fedState == 'FedL') {
 
-                dispatch(addFedData(jobData))
-                dispatch(startProcess())
-                webSocket.send(bsonData);
+
+                let rawData = new ArrayBuffer();
+
+                reader.onload = (e) => {
+                    rawData = e.target.result;
+                    const bufferData = Buffer.from(rawData);
+                    bsonData = serialize({  // whatever js Object you need
+                        file: bufferData,
+                        jobData: jobData
+                    });
+
+                    dispatch(addFedData(jobData))
+                    dispatch(startProcess())
+                    webSocket.send(bsonData);
+                }
+
+
+            }
+
+            else if (fedState == 'FedLH') {
+
+
+                let file_count = 2
+                let rawData_rep = new ArrayBuffer();
+                let rawData_ext = new ArrayBuffer();
+
+                let rep_buffer_data;
+                let ext_buffer_data;
+                rep_reader.onload = (e) => {
+                    rawData_rep = e.target.result;
+                    rep_buffer_data = Buffer.from(rawData_rep);
+                    // resolve()
+
+                    bsonData = serialize({  // whatever js Object you need
+                        rep_file: rep_buffer_data,
+                        ext_file: ext_buffer_data,
+                        jobData: jobData
+                    });
+
+                    if (--file_count == 0) {
+
+                        console.log('dispatching')
+                        dispatch(addFedData(jobData))
+                        dispatch(startProcess())
+                        console.log('sending websocket')
+                        webSocket.send(bsonData);
+
+                    }
+
+                }
+
+                ext_reader.onload = (e) => {
+                    rawData_ext = e.target.result;
+                    ext_buffer_data = Buffer.from(rawData_ext);
+
+                    bsonData = serialize({  // whatever js Object you need
+                        rep_file: rep_buffer_data,
+                        ext_file: ext_buffer_data,
+                        jobData: jobData
+                    });
+                    
+                    if (--file_count == 0) {
+
+                        console.log('dispatching')
+                        dispatch(addFedData(jobData))
+                        dispatch(startProcess())
+                        console.log('sending websocket')
+                        webSocket.send(bsonData);
+
+                    }
+
+
+                }
+
+
+
+
+
+
             }
             //     webSocket.onopen = (event) => {
 
@@ -101,7 +183,16 @@ const Task = () => {
             //       };
             //     // ws.send(bsonData);
             //   }
-            reader.readAsArrayBuffer(jobData.modelData.model[0].originFileObj);
+            if (fedState == 'FedL') {
+                reader.readAsArrayBuffer(jobData.modelData.model[0].originFileObj);
+            }
+            else {
+                rep_reader.readAsArrayBuffer(jobData.modelData.repModel[0].originFileObj)
+                ext_reader.readAsArrayBuffer(jobData.modelData.extModel[0].originFileObj);
+            }
+
+
+
 
 
         };
@@ -125,9 +216,12 @@ const Task = () => {
 
             <GeneralCard onSelectScheme={handleScheme} onChangeData={handleChangeData}></GeneralCard>
 
-            {fedVisible && <FederatedCard onChangeData={handleChangeData}></FederatedCard>}
-            <ModelCard onChangeData={handleChangeData}></ModelCard>
-            <ModelParameterCard onChangeData={handleChangeData} ></ModelParameterCard>
+            {fedState == 'FedL' && <FederatedCard onChangeData={handleChangeData}></FederatedCard>}
+            {fedState == 'FedLH' && <FederatedHeteroCard onChangeData={handleChangeData}></FederatedHeteroCard>}
+            {fedState == 'FedL' && <ModelCard onChangeData={handleChangeData}></ModelCard>}
+            {fedState == 'FedLH' && <ModelCardHetero onChangeData={handleChangeData}></ModelCardHetero>}
+            {fedState == 'FedL' && <ModelParameterCard onChangeData={handleChangeData} ></ModelParameterCard>}
+            {fedState == 'FedLH' && <ModelParameterCardHetero onChangeData={handleChangeData} ></ModelParameterCardHetero>}
             <DatasetCard onChangeData={handleChangeData} ></DatasetCard>
             <div style={{ width: '100%', align: 'center' }}>
                 <Button align='center' type="primary" htmlType="submit" block onClick={handleOnsubmit}>

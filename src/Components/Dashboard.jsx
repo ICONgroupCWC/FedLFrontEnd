@@ -19,7 +19,7 @@ import { stopReceive } from "../redux/reducers/receivingSlice";
 import { Buffer } from "buffer";
 import unpickle from 'unpickle'
 import jpickle from "jpickle"
-import { dashboard_columns } from "../constants/table_data";
+import { dashboard_columns, dashboard_columns_hetero } from "../constants/table_data";
 const { Content } = Layout;
 const { Panel } = Collapse;
 
@@ -63,6 +63,7 @@ const Dashboard = () => {
   const [modelOverview, setmodelOverview] = useState("")
   const [lossFunction, setlossFunction] = useState("")
   const [optimizer, setoptimizer] = useState("")
+  const [tableColumns, setTableColumns] = useState(null)
 
   ChartJS.register(
     CategoryScale,
@@ -158,17 +159,37 @@ const Dashboard = () => {
       if (("plots" in item.general) && (item.general.plots !== undefined)) {
         setPlots(item.general.plots)
       }
+      let table_data;
+      if (item.general.method == 'FedL'){
+        table_data = [{
+          key: '1',
+          rounds: item.scheme.comRounds,
+          epoch: item.scheme.epoch,
+          minibatch: item.scheme.minibatch,
+          tminibatch: item.scheme.minibatchtest,
+          learningRate: item.scheme.lr,
+          clients: activeClients,
+          fraction: item.scheme.clientFraction
+        }]
 
-      let table_data = [{
-        key: '1',
-        rounds: item.scheme.comRounds,
-        epoch: item.scheme.epoch,
-        minibatch: item.scheme.minibatch,
-        tminibatch: item.scheme.minibatchtest,
-        learningRate: item.scheme.lr,
-        clients: activeClients,
-        fraction: item.scheme.clientFraction
-      }]
+        setTableColumns(dashboard_columns)
+      }
+      else {
+        table_data = [{
+          key: '1',
+          rounds: item.scheme.comRounds,
+          batch_size: item.scheme.batch_size,
+          rep_lr: item.scheme.rep_lr,
+          pred_lr: item.scheme.rep_lr,
+         
+        }]
+
+        setTableColumns(dashboard_columns_hetero)
+
+      }
+      
+
+
       console.log('table data ', table_data)
 
       setTableData(table_data)
@@ -315,7 +336,7 @@ const Dashboard = () => {
                   <Table
                     pagination={false}
                     bordered
-                    dataSource={tableData} columns={dashboard_columns} />}
+                    dataSource={tableData} columns={tableColumns} />}
 
               </Card>
             </Col>
